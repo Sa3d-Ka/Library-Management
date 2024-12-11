@@ -2,321 +2,289 @@ import random
 from datetime import datetime
 import csv
 
-livres = {}
-Emprunts = {}
-utilisateurs = {}
+books = {}
+loans = {}
+users = {}
 
-def ProgrammePrincipal():
+def main_program():
     while True:
-        print(f"{'-'*15} Menu Principal {'-'*15}")
-        print("1.Gestion des Livres")
-        print("2.Gestion des Emprunts")
-        print("3.Recherche de Livres")
-        print("4.Statistiques sur les Livres")
-        print("5.Gestion des Utilisateurs")
-        print("6.Quitter")
+        print(f"{'-'*15} Main Menu {'-'*15}")
+        print("1. Book Management")
+        print("2. Loan Management")
+        print("3. Book Search")
+        print("4. Book Statistics")
+        print("5. User Management")
+        print("6. Exit")
         print('-' * 40)
-        choix = input("Entrer votre choix: ")
-        if choix == '1':
-            GestionLivres()
-        elif choix == '2':
-            GestionEmprunts()
-        elif choix == '3':
-            RechercheLivres()
-        elif choix == '4':
-            StatistiquesLivres()
-        elif choix == '5':
-            GestionUtilisateurs()
-        elif choix == '6':
+        choice = input("Enter your choice: ")
+        if choice == '1':
+            manage_books()
+        elif choice == '2':
+            manage_loans()
+        elif choice == '3':
+            search_books()
+        elif choice == '4':
+            book_statistics()
+        elif choice == '5':
+            manage_users()
+        elif choice == '6':
             break
         else:
-            print("Choix non trouver")
+            print("Invalid choice")
 
 def generate_isbn13():
-    # Prefix is always 978 or 979
     prefix = random.choice(["978", "979"])
-    
-    # Registration group (e.g., 0, 1, etc. for English-speaking areas)
     registration_group = str(random.randint(0, 9))
-    
-    # Registrant (publisher, typically 2-7 digits)
     registrant = str(random.randint(100, 9999))
-    
-    # Publication identifier (specific title/edition, typically 1-6 digits)
     publication = str(random.randint(100, 99999))
-    
-    # Combine parts without the check digit
     isbn_without_check = prefix + registration_group + registrant + publication
-    
-    # Calculate the check digit
     check_digit = calculate_check_digit(isbn_without_check)
-    
-    # Return the full ISBN-13
     return isbn_without_check + str(check_digit)
 
 def calculate_check_digit(isbn_without_check):
-    """Calculate the check digit for an ISBN-13."""
     total = 0
     for i, digit in enumerate(isbn_without_check):
-        if i % 2 == 0:
-            total += int(digit)  # Multiply odd-positioned digits by 1
-        else:
-            total += 3 * int(digit)  # Multiply even-positioned digits by 3
-    
+        total += int(digit) if i % 2 == 0 else 3 * int(digit)
     remainder = total % 10
     return 0 if remainder == 0 else 10 - remainder
 
-#==================== Gestion des Livres ==================
-def GestionLivres():
+# ==================== Book Management ==================
+def manage_books():
     while True:
-        print(f"{'-'*10} Gestion des Livres {'-'*10}")
-        print("1.Ajouter Livre")
-        print("2.Supprimer Livre")
-        print("3.Quitter")
+        print(f"{'-'*10} Book Management {'-'*10}")
+        print("1. Add Book")
+        print("2. Remove Book")
+        print("3. Exit")
         print('-' * 30)
-        choix = input("Entrer votre choix: ")
-        if choix == '1':
-            ajouterLivre()
-        elif choix == '2':
-            supprimerLivre()
-        elif choix == '3':
+        choice = input("Enter your choice: ")
+        if choice == '1':
+            add_book()
+        elif choice == '2':
+            remove_book()
+        elif choice == '3':
             break
         else:
-            print("Choix non trouver")
+            print("Invalid choice")
 
-def ajouterLivre():
-    titre = input("Entrer le titre du livre: ").title().strip()
-    auteur = input("Entrer l'auteur du livre: ").title().strip()
-    quantite = int(input("Entrer la quantite du livre: "))
+def add_book():
+    title = input("Enter book title: ").title().strip()
+    author = input("Enter book author: ").title().strip()
+    quantity = int(input("Enter book quantity: "))
     isbn = generate_isbn13()
-    print(f"ISBN généré: {isbn}")
-    if isbn in livres:
-        print(f"Un livre avec l'ISBN {isbn} existe déjà.")
+    print(f"Generated ISBN: {isbn}")
+    if isbn in books:
+        print(f"A book with ISBN {isbn} already exists.")
         return
-    livres[isbn] = {
-        "Titre": titre,
-        "Auteur": auteur,
-        "Quantite": quantite
+    books[isbn] = {
+        "Title": title,
+        "Author": author,
+        "Quantity": quantity
     }
-    print(f"Livre '{titre}' ajouté avec succès.")
-    Enregistrer_Livre()
+    print(f"Book '{title}' added successfully.")
+    Save_Books()
 
-def supprimerLivre():
-    isbn = input("Entrez l'ISBN du livre a supprimer: ")
-    if isbn not in livres:
-        print(f"Le livre avec l'ISBN {isbn} n'existe pas.")
+def remove_book():
+    isbn = input("Enter ISBN of the book to remove: ")
+    if isbn not in books:
+        print(f"Book with ISBN {isbn} does not exist.")
         return
-    del livres[isbn]
-    print(f"Livre avec l'ISBN {isbn} supprime avec succès.")
-    Enregistrer_Livre()
-#====================================================================
+    del books[isbn]
+    print(f"Book with ISBN {isbn} removed successfully.")
+    Save_Books()
 
-#==================== Gestion des Emprunts ==================
-def GestionEmprunts():
+# ==================== Loan Management ==================
+def manage_loans():
     while True:
-        print(f"{'-'*10} Gestion des Emprunts {'-'*10}")
-        print("1.Emprunter Livre")
-        print("2.Retourner Livre")
-        print("3.Calcul Amende")
-        print("4.Quitter")
+        print(f"{'-'*10} Loan Management {'-'*10}")
+        print("1. Borrow Book")
+        print("2. Return Book")
+        print("3. Calculate Fine")
+        print("4. Exit")
         print('-' * 30)
-        choix = input("Entrer votre choix: ")
-        if choix == '1':
-            EmprunterLivre()
-        elif choix == '2':
-            RetournerLivre()
-        elif choix == '3':
-            CalculAmende()
-        elif choix == '4':
+        choice = input("Enter your choice: ")
+        if choice == '1':
+            borrow_book()
+        elif choice == '2':
+            return_book()
+        elif choice == '3':
+            calculate_fine()
+        elif choice == '4':
             break
         else:
-            print("Choix non trouver")
+            print("Invalid choice")
 
-def EmprunterLivre():
-    cinCl = input("Entrer le CIN du client: ")
-    if cinCl not in utilisateurs:
-        print("Client n'existe pas")
+def borrow_book():
+    user_id = input("Enter user ID: ")
+    if user_id not in users:
+        print("User does not exist")
         return
-    isbn = input("Entrer l'ISBN du livre: ")
-    if isbn not in livres:
-        print(f"Le livre avec l'ISBN {isbn} n'existe pas.")
+    isbn = input("Enter book ISBN: ")
+    if isbn not in books:
+        print(f"Book with ISBN {isbn} does not exist.")
         return
-
-    if livres[isbn]['Quantite'] <= 0:
-        print(f"Le livre '{(livres[isbn]['Titre'])}' n'est pas disponible pour le moment.")
+    if books[isbn]['Quantity'] <= 0:
+        print(f"Book '{books[isbn]['Title']}' is not currently available.")
         return
+    loans[user_id] = isbn
+    books[isbn]['Quantity'] -= 1
+    print(f"Book '{books[isbn]['Title']}' borrowed successfully by user {user_id}.")
+    Save_Books()
+    Save_Loans()
 
-    Emprunts[cinCl] = isbn
-    livres[isbn]['Quantite'] -= 1
-    print(f"Livre '{livres[isbn]['Titre']}' emprunté avec succès par le client {cinCl}.")
-    Enregistrer_Livre()
-    Enregistrer_Emprunts()
+def return_book():
+    user_id = input("Enter user ID: ")
+    isbn = input("Enter book ISBN: ")
+    if user_id not in loans:
+        print("No loan record found for this user.")
+        return
+    del loans[user_id]
+    books[isbn]['Quantity'] += 1
+    print(f"Book with ISBN {isbn} returned successfully.")
+    Save_Books()
+    Save_Loans()
 
-def RetournerLivre():
-    cinCl = input("Entrer le CIN du client: ")
-    isbn = input("Entrer l'ISBN du livre: ")
-
-    del Emprunts[cinCl]
-
-    livres[isbn]['Quantite'] += 1
-    print(f"Le livre avec l'ISBN {isbn} a été retourné avec succès.")
-    Enregistrer_Livre()
-    Enregistrer_Emprunts()
-
-def CalculAmende():
-    date_prevue = input("Entrer la date de retour prévue (DD/MM/YYYY): ")
-    date_reel = input("Entrer la date réel de retour (DD/MM/YYYY): ")
-
-    prevue = datetime.strptime(date_prevue, "%d/%m/%Y")
-    reel = datetime.strptime(date_reel, "%d/%m/%Y")
-
-    retard = (reel - prevue).days
-
-    if retard > 0:
-        amende = retard * 5
-        print(f"Le retard: {retard} jours")
-        print(f"L'amende: {amende} Dh")
+def calculate_fine():
+    expected_date = input("Enter expected return date (DD/MM/YYYY): ")
+    actual_date = input("Enter actual return date (DD/MM/YYYY): ")
+    expected = datetime.strptime(expected_date, "%d/%m/%Y")
+    actual = datetime.strptime(actual_date, "%d/%m/%Y")
+    delay = (actual - expected).days
+    if delay > 0:
+        fine = delay * 5
+        print(f"Late by: {delay} days")
+        print(f"Fine: {fine} MAD")
     else:
-        print("Aucun retard, aucune amende.")
-#============================================================
+        print("No delay, no fine.")
 
-#==================== Recherche de Livres ==================
-def RechercheLivres():
-    resultats = []
-
-    mot_cle = input("Entrez un mot-clé pour la recherche: ")
-    
-    for isbn, details in livres.items():
-        if mot_cle.lower() in details['Titre'].lower() or mot_cle.lower() in details['Auteur'].lower():
-            resultats.append(details)
-
-    if resultats:
-        print("Résultats de la recherche:")
-        for livre in resultats:
-            print(f"Titre: {livre['Titre']}, Auteur: {livre['Auteur']}, Quantité: {livre['Quantite']}")
+# ==================== Book Search ==================
+def search_books():
+    results = []
+    keyword = input("Enter a keyword to search: ")
+    for isbn, details in books.items():
+        if keyword.lower() in details['Title'].lower() or keyword.lower() in details['Author'].lower():
+            results.append(details)
+    if results:
+        print("Search Results:")
+        for book in results:
+            print(f"Title: {book['Title']}, Author: {book['Author']}, Quantity: {book['Quantity']}")
     else:
-        print("Aucun livre trouvé pour le mot-clé donné.")
-#===========================================================
+        print("No books found for the given keyword.")
 
-#==================== Statistiques sur les Livres ==================
-def StatistiquesLivres():
-    livres_disponibles = 0
+# ==================== Book Statistics ==================
+def book_statistics():
+    available_books = 0
+    total_books = len(books)
+    total_loans = len(loans)
+    for info in books.values():
+        if info['Quantity'] > 0:
+            available_books += 1
+    print("=== Statistics ===")
+    print(f"Total books: {total_books}")
+    print(f"Borrowed books: {total_loans}")
+    print(f"Available books: {available_books}")
 
-    total_livres = len(livres)
-    total_empruntes = len(Emprunts)
-
-    for info in livres.values():
-        if info['Quantite'] > 0:
-            livres_disponibles += 1
-
-    print("=== Statistiques ===")
-    print(f"Nombre total de livres: {total_livres}")
-    print(f"Nombre de livres empruntés: {total_empruntes}")
-    print(f"Nombre de livres disponibles: {livres_disponibles}")
-#===================================================================
-
-#==================== Gestion des Utilisateurs ==================
-def GestionUtilisateurs():
+# ==================== User Management ==================
+def manage_users():
     while True:
-        print(f"{'-'*10} Gestion des Utilisateurs {'-'*10}")
-        print("1.Ajouter Utilisateur")
-        print("2.Supprimer Utilisateur")
-        print("3.Quitter")
+        print(f"{'-'*10} User Management {'-'*10}")
+        print("1. Add User")
+        print("2. Remove User")
+        print("3. Exit")
         print('-' * 30)
-        choix = input("Entrer votre choix: ")
-        if choix == '1':
-            AjouterUtilisateur()
-        elif choix == '2':
-            SupprimerUtilisateur()
-        elif choix == '3':
+        choice = input("Enter your choice: ")
+        if choice == '1':
+            add_user()
+        elif choice == '2':
+            remove_user()
+        elif choice == '3':
             break
         else:
-            print("Choix non trouver")
+            print("Invalid choice")
 
-def AjouterUtilisateur():
-    nom = input("Entrer votre nom: ").capitalize()
-    prenom = input("Entrer votre prenom: ").capitalize()
-    cin = input("Entrer votre CIN: ")
-    if cin in utilisateurs:
-        print(f"Un client avec le CIN {cin} existe déjà.")
+def add_user():
+    last_name = input("Enter last name: ").capitalize()
+    first_name = input("Enter first name: ").capitalize()
+    user_id = input("Enter user ID: ")
+    if user_id in users:
+        print(f"A user with ID {user_id} already exists.")
         return
-    utilisateurs[cin] = {
-        "Nom": nom,
-        "Prénom": prenom
+    users[user_id] = {
+        "Last Name": last_name,
+        "First Name": first_name
     }
-    print(f"Client '{nom} {prenom}' ajouté avec succès.")
-    Enregistrer_Utilisateurs()
+    print(f"User '{last_name} {first_name}' added successfully.")
+    Save_Users()
 
-def SupprimerUtilisateur():
-    cin = input("Entrer le CIN du client a supprimer: ")
-    if cin not in utilisateurs:
-        print("Utilisateur n'existe pas")
+def remove_user():
+    user_id = input("Enter user ID to remove: ")
+    if user_id not in users:
+        print("User does not exist")
         return
-    del utilisateurs[cin]
-    print(f"L'utilisateur avec le CIN '{cin}' supprime avec succès.")
-    Enregistrer_Utilisateurs()
+    del users[user_id]
+    print(f"User with ID '{user_id}' removed successfully.")
+    Save_Users()
 #============================================================
 
-#==================== Enregistrer les donnees CSV ==================
-def Enregistrer_Livre():
-    with open('livres.csv', 'w', newline='', encoding='utf-8') as file:
+#==================== Save Data to CSV ==================
+def Save_Books():
+    with open('books.csv', 'w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
-        writer.writerow(["Titre", "Auteur", "ISBN", "Qantite"])
+        writer.writerow(["Title", "Author", "ISBN", "Quantity"])
 
-        for isbn, info in livres.items():
-            writer.writerow([info['Titre'], info['Auteur'], isbn, info['Quantite']])
+        for isbn, info in books.items():
+            writer.writerow([info['Title'], info['Author'], isbn, info['Quantity']])
 
-def Enregistrer_Emprunts():
-    with open('Emprunts.csv', 'w', newline='', encoding='utf-8') as file:
+def Save_Loans():
+    with open('loans.csv', 'w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
         writer.writerow(["CIN", "ISBN"])
 
-        for cin, isbn in Emprunts.items():
+        for cin, isbn in loans.items():
             writer.writerow([cin, isbn])
 
-def Enregistrer_Utilisateurs():
-    with open('Utilisateurs.csv', 'w', newline='', encoding='utf-8') as file:
+def Save_Users():
+    with open('users.csv', 'w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
-        writer.writerow(["Nom", "Prénom", "CIN"])
+        writer.writerow(["Name", "Surname", "CIN"])
 
-        for cin, info in utilisateurs.items():
-            writer.writerow([info['Nom'], info['Prénom'], cin])
+        for cin, info in users.items():
+            writer.writerow([info['Name'], info['Surname'], cin])
 #====================================================================
 
-#==================== Charger les données CSV ==================
-def Charger_données():
-    with open('livres.csv', 'r', newline='', encoding='utf-8') as file:
+#==================== Load Data from CSV ==================
+def Load_Data():
+    with open('books.csv', 'r', newline='', encoding='utf-8') as file:
             reader = csv.reader(file)
             next(reader)
             for row in reader:
-                titre, auteur, isbn, quantite = row
-                livres[isbn] = {
-                    "Titre": titre,
-                    "Auteur": auteur,
-                    "Quantite": int(quantite)
+                title, author, isbn, quantity = row
+                books[isbn] = {
+                    "Title": title,
+                    "Author": author,
+                    "Quantity": int(quantity)
                 }
-            print("Livres chargés avec succès.")
+            print("Books loaded successfully.")
 
-    with open('Emprunts.csv', 'r', newline='', encoding='utf-8') as file:
+    with open('loans.csv', 'r', newline='', encoding='utf-8') as file:
         reader = csv.reader(file)
         next(reader)
         for row in reader:
             cin, isbn = row
-            Emprunts[cin] = isbn
-        print("Emprunts chargés avec succès.")
+            loans[cin] = isbn
+        print("Loans loaded successfully.")
 
-    with open('Utilisateurs.csv', 'r', newline='', encoding='utf-8') as file:
+    with open('users.csv', 'r', newline='', encoding='utf-8') as file:
         reader = csv.reader(file)
         next(reader)
         for row in reader:
-            nom, prenom, cin = row
-            utilisateurs[cin] = {
-                "Nom": nom,
-                "Prénom": prenom
+            name, surname, cin = row
+            users[cin] = {
+                "Name": name,
+                "Surname": surname
             }
-        print("Utilisateurs chargés avec succès.")  
+        print("Users loaded successfully.")  
 
 #====================================================================
 
-Charger_données()
-ProgrammePrincipal()
+Load_Data()
+main_program()
